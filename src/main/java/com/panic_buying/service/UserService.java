@@ -1,6 +1,7 @@
 package com.panic_buying.service;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.panic_buying.dao.UserDao;
@@ -13,9 +14,11 @@ import com.panic_buying.utils.UUIDUtil;
 import com.panic_buying.vo.LoginVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class UserService extends ServiceImpl<UserDao, User> {
 
     @Autowired
-    private RedisTemplate<String, Serializable> redisTemplate;
+    private StringRedisTemplate redisTemplate;
 
     public static final String COOKI_NAME_TOKEN = "token";
 
@@ -69,5 +72,21 @@ public class UserService extends ServiceImpl<UserDao, User> {
         cookie.setMaxAge(PanicBuyingUserKey.token.expireSeconds());
         cookie.setPath("/");
         response.addCookie(cookie);
+    }
+
+    public User getByToken(HttpServletResponse response, String token) {
+        if(StringUtils.isEmpty(token)) {
+            return null;
+        }
+        String userJson = redisTemplate.opsForValue().get(PanicBuyingUserKey.token.getPrefix() + token);
+        if (StringUtils.isEmpty(userJson)) {
+            return null;
+        }
+        User user = JSON.parseObject(userJson, User.class);
+        //延长有效期
+        if(user != null) {
+            addCookie(response, token, user);
+        }
+        return user;
     }
 }

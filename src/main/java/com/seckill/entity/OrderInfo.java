@@ -33,7 +33,7 @@ public class OrderInfo implements Serializable {
 
     private Integer goodsCount;
 
-    private BigDecimal goodsPrice;
+    private Double goodsPrice;
 
     private Integer orderChannel;
 

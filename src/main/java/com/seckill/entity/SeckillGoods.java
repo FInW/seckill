@@ -22,7 +22,7 @@ public class SeckillGoods implements Serializable {
 
     private Long goodsId;
 
-    private BigDecimal seckillPrice;
+    private Double seckillPrice;
 
     /**
      * 库存

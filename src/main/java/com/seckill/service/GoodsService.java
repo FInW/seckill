@@ -3,6 +3,7 @@ package com.seckill.service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seckill.dao.GoodsDao;
 import com.seckill.entity.Goods;;
+import com.seckill.entity.SeckillGoods;
 import com.seckill.vo.GoodsVo;
 import org.springframework.stereotype.Service;
 
@@ -25,5 +26,11 @@ public class GoodsService extends ServiceImpl<GoodsDao, Goods> {
 
     public GoodsVo getGoodsVoByGoodsId(long goodsId) {
         return baseMapper.getGoodsVoByGoodsId(goodsId);
+    }
+
+    public void reduceStock(GoodsVo goods) {
+        SeckillGoods seckillGoods = new SeckillGoods();
+        seckillGoods.setGoodsId(goods.getId());
+        baseMapper.reduceStock(seckillGoods);
     }
 }

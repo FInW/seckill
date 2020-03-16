@@ -2,10 +2,12 @@ package com.seckill.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.seckill.entity.Goods;
+import com.seckill.entity.SeckillGoods;
 import com.seckill.vo.GoodsVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -34,5 +36,8 @@ public interface GoodsDao extends BaseMapper<Goods> {
             "on seckill_goods.goods_id = goods.id " +
             "where goods.id = #{goodsId}")
     GoodsVo getGoodsVoByGoodsId(@Param("goodsId") long goodsId);
+
+    @Update("update seckill_goods set stock_count = stock_count - 1 where goods_id = #{goodsId}")
+    int reduceStock(SeckillGoods goods);
 
 }

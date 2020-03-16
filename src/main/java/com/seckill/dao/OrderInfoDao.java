@@ -2,7 +2,9 @@ package com.seckill.dao;
 
 import com.seckill.entity.OrderInfo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.SelectKey;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -16,5 +18,4 @@ import org.springframework.stereotype.Repository;
 @Mapper
 @Repository
 public interface OrderInfoDao extends BaseMapper<OrderInfo> {
-
 }

@@ -41,8 +41,8 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	compile group: 'com.baomidou', name: 'mybatis-plus-boot-starter', version: '3.2.0'
-	compile group: 'com.baomidou', name: 'mybatis-plus-generator', version: '3.2.0'
+	compile group: 'com.baomidou', name: 'mybatis-plus-boot-starter', version: '3.3.1'
+	compile group: 'com.baomidou', name: 'mybatis-plus-generator', version: '3.3.1'
 
 	compile group: 'com.google.guava', name: 'guava', version: '28.2-jre'
 
@@ -59,6 +59,9 @@ dependencies {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
 	testImplementation 'io.projectreactor:reactor-test'
+
+	compile group: 'org.apache.velocity', name: 'velocity-engine-core', version: '2.2'
+
 
 }
 

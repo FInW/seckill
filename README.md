@@ -1,2 +1,2 @@
-#panic_buying
+# seckill
 ### Java秒杀项目

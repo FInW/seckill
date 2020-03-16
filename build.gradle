@@ -60,7 +60,8 @@ dependencies {
 	}
 	testImplementation 'io.projectreactor:reactor-test'
 
-	compile group: 'org.apache.velocity', name: 'velocity-engine-core', version: '2.2'
+//	代码生成器依赖
+//	compile group: 'org.apache.velocity', name: 'velocity-engine-core', version: '2.2'
 
 
 }

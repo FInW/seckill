@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
     public Result<String> exceptionHandler(HttpServletRequest request, Exception e) {
-        logger.error(e.getMessage());
+        logger.error("错误信息", e);
         if (e instanceof GlobalException) {
             GlobalException globalException = (GlobalException) e;
             return Result.error(globalException.getCodeMsg());

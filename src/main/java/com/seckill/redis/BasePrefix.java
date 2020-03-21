@@ -29,4 +29,10 @@ public abstract class BasePrefix implements KeyPrefix{
         String className = getClass().getSimpleName();
         return className + ":" + prefix + ":";
     }
+
+    @Override
+    public String getPrefix(Object prefix) {
+        String className = getClass().getSimpleName();
+        return className + ":" + this.prefix + ":" + prefix;
+    }
 }

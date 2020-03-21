@@ -1,17 +1,18 @@
 package com.seckill.service;
 
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.seckill.dao.UserDao;
 import com.seckill.entity.User;
 import com.seckill.exception.GlobalException;
 import com.seckill.redis.PanicBuyingUserKey;
+import com.seckill.redis.UserKey;
 import com.seckill.utils.CodeMsg;
 import com.seckill.utils.MD5Util;
 import com.seckill.utils.UUIDUtil;
 import com.seckill.vo.LoginVo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,9 @@ public class UserService extends ServiceImpl<UserDao, User> {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private UserDao userDao;
 
     public static final String COOKI_NAME_TOKEN = "token";
 
@@ -46,7 +50,7 @@ public class UserService extends ServiceImpl<UserDao, User> {
 
         String mobile = loginVo.getMobile();
         String password = loginVo.getPassword();
-        User user = baseMapper.selectOne(Wrappers.<User>lambdaQuery().eq(User::getPhone, mobile));
+        User user = getByPhone(Long.valueOf(mobile));
         if (user == null) {
             throw new GlobalException(CodeMsg.MOBILE_NOT_EXIST);
         }
@@ -69,6 +73,23 @@ public class UserService extends ServiceImpl<UserDao, User> {
         cookie.setMaxAge(PanicBuyingUserKey.token.expireSeconds());
         cookie.setPath("/");
         response.addCookie(cookie);
+    }
+
+    public User getByPhone(long mobile) {
+        //取缓存
+        String userJson = redisTemplate.opsForValue().get(UserKey.getByPhone.getPrefix(mobile));
+        if (StringUtils.isNotEmpty(userJson)) {
+            User user = JSON.parseObject(userJson, User.class);
+            if(user != null) {
+                return user;
+            }
+        }
+        //取数据库
+        User user = baseMapper.selectOne(Wrappers.<User>lambdaQuery().eq(User::getPhone, mobile));
+        if(user != null) {
+            redisTemplate.opsForValue().set(UserKey.getByPhone.getPrefix(mobile), JSON.toJSONString(user));
+        }
+        return user;
     }
 
     public User getByToken(HttpServletResponse response, String token) {

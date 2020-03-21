@@ -9,4 +9,6 @@ public interface KeyPrefix {
     int expireSeconds();
 
     String getPrefix();
+
+    String getPrefix(Object prefix);
 }

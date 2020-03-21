@@ -36,7 +36,7 @@ public class UserUtil {
 			user.setSalt("1a2b3c");
 			user.setPassword(MD5Util.md5BySalt("e10adc3949ba59abbe56e057f20f883e", user.getSalt()));
 			users.add(user);
-			userService.save(user);
+//			userService.save(user);
 		}
 		System.out.println("create user");
 //		//插入数据库

@@ -16,10 +16,11 @@ public enum CodeMsg {
     //商品模块 5003XX
 
     //订单模块 5004XX
+    ORDER_NOT_EXIST(500400, "订单不存在"),
 
     //秒杀模块 5005XX
-    MIAO_SHA_OVER(500500, "商品已经秒杀结束"),
-    REPEATE_MIAOSHA(500501, "不能重复秒杀");
+    SECKILL_OVER(500500, "商品已经秒杀结束"),
+    REPEATE_SECKILL(500501, "不能重复秒杀");
 
     private int code;
     private String msg;

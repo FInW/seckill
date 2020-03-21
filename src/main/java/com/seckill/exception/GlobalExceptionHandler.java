@@ -20,6 +20,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
     public Result<String> exceptionHandler(HttpServletRequest request, Exception e) {
+        logger.error("请求路径{}", request.getServletPath());
+        logger.error("请求参数{}", request.getParameterMap().entrySet());
         logger.error("错误信息", e);
         if (e instanceof GlobalException) {
             GlobalException globalException = (GlobalException) e;

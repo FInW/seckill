@@ -10,25 +10,21 @@ import com.seckill.redis.PanicBuyingUserKey;
 import com.seckill.redis.UserKey;
 import com.seckill.utils.CodeMsg;
 import com.seckill.utils.MD5Util;
+import com.seckill.utils.RedisUtil;
 import com.seckill.utils.UUIDUtil;
 import com.seckill.vo.LoginVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService extends ServiceImpl<UserDao, User> {
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
-
-    @Autowired
-    private UserDao userDao;
+    private RedisUtil redisUtil;
 
     public static final String COOKI_NAME_TOKEN = "token";
 
@@ -67,8 +63,7 @@ public class UserService extends ServiceImpl<UserDao, User> {
     }
 
     private void addCookie(HttpServletResponse response, String token, User user) {
-        redisTemplate.opsForValue().set(PanicBuyingUserKey.token.getPrefix() + token, JSON.toJSONString(user),
-                PanicBuyingUserKey.token.expireSeconds(), TimeUnit.SECONDS);
+        redisUtil.set(PanicBuyingUserKey.token, token, JSON.toJSONString(user));
         Cookie cookie = new Cookie(COOKI_NAME_TOKEN, token);
         cookie.setMaxAge(PanicBuyingUserKey.token.expireSeconds());
         cookie.setPath("/");
@@ -77,32 +72,32 @@ public class UserService extends ServiceImpl<UserDao, User> {
 
     public User getByPhone(long mobile) {
         //取缓存
-        String userJson = redisTemplate.opsForValue().get(UserKey.getByPhone.getPrefix(mobile));
+        String userJson = redisUtil.get(UserKey.getByPhone.getKey(mobile));
         if (StringUtils.isNotEmpty(userJson)) {
             User user = JSON.parseObject(userJson, User.class);
-            if(user != null) {
+            if (user != null) {
                 return user;
             }
         }
         //取数据库
         User user = baseMapper.selectOne(Wrappers.<User>lambdaQuery().eq(User::getPhone, mobile));
-        if(user != null) {
-            redisTemplate.opsForValue().set(UserKey.getByPhone.getPrefix(mobile), JSON.toJSONString(user));
+        if (user != null) {
+            redisUtil.set(UserKey.getByPhone, mobile, JSON.toJSONString(user));
         }
         return user;
     }
 
     public User getByToken(HttpServletResponse response, String token) {
-        if(StringUtils.isEmpty(token)) {
+        if (StringUtils.isEmpty(token)) {
             return null;
         }
-        String userJson = redisTemplate.opsForValue().get(PanicBuyingUserKey.token.getPrefix() + token);
+        String userJson = redisUtil.get(PanicBuyingUserKey.token, token);
         if (StringUtils.isEmpty(userJson)) {
             return null;
         }
         User user = JSON.parseObject(userJson, User.class);
         //延长有效期
-        if(user != null) {
+        if (user != null) {
             addCookie(response, token, user);
         }
         return user;

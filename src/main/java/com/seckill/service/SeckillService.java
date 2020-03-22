@@ -4,9 +4,9 @@ import com.seckill.entity.OrderInfo;
 import com.seckill.entity.SeckillOrder;
 import com.seckill.entity.User;
 import com.seckill.redis.SeckillKey;
+import com.seckill.utils.RedisUtil;
 import com.seckill.vo.GoodsVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +21,7 @@ public class SeckillService {
     private OrderService orderService;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private RedisUtil redisUtil;
 
 
     @Transactional
@@ -52,10 +52,10 @@ public class SeckillService {
     }
 
     private void setGoodsOver(Long goodsId) {
-        redisTemplate.opsForValue().set(SeckillKey.isGoodsOver.getPrefix(goodsId), "true");
+        redisUtil.set(SeckillKey.isGoodsOver, goodsId, "true");
     }
 
     private boolean getGoodsOver(long goodsId) {
-        return redisTemplate.hasKey(SeckillKey.isGoodsOver.getPrefix(goodsId));
+        return redisUtil.hasKey(SeckillKey.isGoodsOver, goodsId);
     }
 }

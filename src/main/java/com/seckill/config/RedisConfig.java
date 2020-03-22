@@ -1,5 +1,6 @@
 package com.seckill.config;
 
+import com.seckill.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,11 +12,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import java.io.Serializable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * Redis配置
@@ -41,14 +38,14 @@ public class RedisConfig {
      * @return
      */
 
-    @Bean("redis")
+    @Bean("redisConf")
     @Primary
     @ConfigurationProperties(prefix = "spring.redis")
     public RedisStandaloneConfiguration redisConfig() {
         return new RedisStandaloneConfiguration();
     }
 
-    @Bean("redis1")
+    @Bean("redis1Conf")
     @ConfigurationProperties(prefix = "spring.redis1")
     public RedisStandaloneConfiguration redisConfig1() {
         return new RedisStandaloneConfiguration();
@@ -63,13 +60,13 @@ public class RedisConfig {
 
     @Bean("factory")
     @Primary
-    public LettuceConnectionFactory factory(GenericObjectPoolConfig poolConfig,@Qualifier("redis") RedisStandaloneConfiguration redisConfig) {
+    public LettuceConnectionFactory factory(GenericObjectPoolConfig poolConfig,@Qualifier("redisConf") RedisStandaloneConfiguration redisConfig) {
         LettuceClientConfiguration clientConfiguration = LettucePoolingClientConfiguration.builder().poolConfig(poolConfig).build();
         return new LettuceConnectionFactory(redisConfig, clientConfiguration);
     }
 
     @Bean("factory1")
-    public LettuceConnectionFactory factory1(GenericObjectPoolConfig poolConfig,@Qualifier("redis1") RedisStandaloneConfiguration redisConfig) {
+    public LettuceConnectionFactory factory1(GenericObjectPoolConfig poolConfig,@Qualifier("redis1Conf") RedisStandaloneConfiguration redisConfig) {
         LettuceClientConfiguration clientConfiguration = LettucePoolingClientConfiguration.builder().poolConfig(poolConfig).build();
         return new LettuceConnectionFactory(redisConfig, clientConfiguration);
     }
@@ -82,21 +79,30 @@ public class RedisConfig {
      */
     @Bean
     @Primary
-    public RedisTemplate<String, Serializable> redisTemplate(LettuceConnectionFactory connectionFactory) {
+    public StringRedisTemplate redisTemplate(LettuceConnectionFactory connectionFactory) {
         return getRedisTemplate(connectionFactory);
     }
 
     @Bean("redisTemplate1")
-    public RedisTemplate<String, Serializable> redisTemplate1(@Qualifier("factory1")LettuceConnectionFactory factory) {
+    public StringRedisTemplate redisTemplate1(@Qualifier("factory1")LettuceConnectionFactory factory) {
         return getRedisTemplate(factory);
     }
 
+    @Bean
+    @Primary
+    public RedisUtil redis0Util(StringRedisTemplate redisTemplate) {
+        return new RedisUtil(redisTemplate);
+    }
 
-    private RedisTemplate<String, Serializable> getRedisTemplate(LettuceConnectionFactory factory) {
-        RedisTemplate template = new RedisTemplate();
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+    @Bean("redis1")
+    public RedisUtil redis1Util(@Qualifier("redisTemplate1") StringRedisTemplate redisTemplate) {
+        return new RedisUtil(redisTemplate);
+    }
+
+    private StringRedisTemplate getRedisTemplate(LettuceConnectionFactory factory) {
+        StringRedisTemplate template = new StringRedisTemplate();
         template.setConnectionFactory(factory);
+        template.afterPropertiesSet();
         return template;
     }
 

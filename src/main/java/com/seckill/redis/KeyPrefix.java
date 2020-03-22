@@ -10,5 +10,5 @@ public interface KeyPrefix {
 
     String getPrefix();
 
-    String getPrefix(Object prefix);
+    String getKey(Object prefix);
 }

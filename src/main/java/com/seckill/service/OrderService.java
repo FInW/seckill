@@ -7,10 +7,11 @@ import com.seckill.entity.OrderInfo;
 import com.seckill.entity.SeckillOrder;
 import com.seckill.entity.User;
 import com.seckill.redis.OrderKey;
+import com.seckill.utils.RedisUtil;
 import com.seckill.vo.GoodsVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,12 +36,13 @@ public class OrderService {
     private OrderInfoDao orderInfoDao;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    @Qualifier("redis1")
+    private RedisUtil redisUtil;
 
     public SeckillOrder getSeckillOrderByUserIdGoodsId(long userId, long goodsId) {
 //        return seckillOrderDao.getSeckillOrderByUserIdGoodsId(userId, goodsId);
 
-        String json = redisTemplate.opsForValue().get(OrderKey.getSeckillOrderByUidGid.getPrefix(userId + "_" + goodsId));
+        String json = redisUtil.get(OrderKey.getSeckillOrderByUidGid.getKey(userId + "_" + goodsId));
         if (StringUtils.isEmpty(json)) {
             return null;
         }
@@ -66,9 +68,7 @@ public class OrderService {
         seckillOrder.setUserId(user.getId());
         seckillOrderDao.insert(seckillOrder);
 
-        redisTemplate.opsForValue().set(
-                OrderKey.getSeckillOrderByUidGid.getPrefix(user.getId() + "_" + goods.getId()),
-                JSON.toJSONString(seckillOrder));
+        redisUtil.set(OrderKey.getSeckillOrderByUidGid, user.getId() + "_" + goods.getId(), JSON.toJSONString(seckillOrder));
         return orderInfo;
     }
 

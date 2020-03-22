@@ -9,11 +9,11 @@ import com.seckill.service.GoodsService;
 import com.seckill.service.OrderService;
 import com.seckill.service.SeckillService;
 import com.seckill.utils.CodeMsg;
+import com.seckill.utils.RedisUtil;
 import com.seckill.utils.Result;
 import com.seckill.vo.GoodsVo;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,7 +41,7 @@ public class SeckillController implements InitializingBean {
     private MQSender sender;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private RedisUtil redisUtil;
 
     private HashMap<Long, Boolean> localOverMap = new HashMap<Long, Boolean>();
 
@@ -52,7 +52,7 @@ public class SeckillController implements InitializingBean {
             return;
         }
         for (GoodsVo goods : goodsVoList) {
-            redisTemplate.opsForValue().set(GoodsKey.getSeckillGoodsStock.getPrefix(goods.getId()), String.valueOf(goods.getStockCount()));
+            redisUtil.set(GoodsKey.getSeckillGoodsStock, goods.getId(), String.valueOf(goods.getStockCount()));
             localOverMap.put(goods.getId(), false);
         }
     }
@@ -72,7 +72,7 @@ public class SeckillController implements InitializingBean {
             return Result.error(CodeMsg.SECKILL_OVER);
         }
         //预减库存
-        long stock = redisTemplate.opsForValue().decrement(GoodsKey.getSeckillGoodsStock.getPrefix(goodsId));
+        long stock = redisUtil.decrement(GoodsKey.getSeckillGoodsStock, goodsId);
         if (stock < 0) {
             localOverMap.put(goodsId, true);
             return Result.error(CodeMsg.SECKILL_OVER);

@@ -3,12 +3,12 @@ package com.seckill.controller;
 import com.seckill.entity.User;
 import com.seckill.redis.GoodsKey;
 import com.seckill.service.GoodsService;
+import com.seckill.utils.RedisUtil;
 import com.seckill.utils.Result;
 import com.seckill.vo.GoodsDetailVo;
 import com.seckill.vo.GoodsVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +29,7 @@ public class GoodsController {
     private GoodsService goodsService;
 
     @Autowired
-    RedisTemplate<String, String> redisTemplate;
+    private RedisUtil redisUtil;
 
     @Autowired
     private ThymeleafViewResolver thymeleafViewResolver;
@@ -40,7 +40,7 @@ public class GoodsController {
                        Model model, User user) {
         model.addAttribute("user", user);
         //取页面缓存
-        String html = redisTemplate.opsForValue().get(GoodsKey.getGoodsList.getPrefix());
+        String html = redisUtil.get(GoodsKey.getGoodsList);
         if(StringUtils.isNotEmpty(html)){
             return html;
         }
@@ -51,7 +51,7 @@ public class GoodsController {
                 request.getLocale(), model.asMap());
         html = thymeleafViewResolver.getTemplateEngine().process("goods_list", ctx);
         if(StringUtils.isNotEmpty(html)) {
-            redisTemplate.opsForValue().set(GoodsKey.getGoodsList.getPrefix(), html);
+            redisUtil.set(GoodsKey.getGoodsList, html);
         }
         return html;
     }
@@ -92,7 +92,7 @@ public class GoodsController {
         model.addAttribute("user", user);
 
         //取缓存
-        String html = redisTemplate.opsForValue().get(GoodsKey.getGoodsDetail.getPrefix(goodsId));
+        String html = redisUtil.get(GoodsKey.getGoodsDetail.getKey(goodsId));
         if(!StringUtils.isEmpty(html)) {
             return html;
         }
@@ -124,7 +124,7 @@ public class GoodsController {
                 request.getServletContext(),request.getLocale(), model.asMap());
         html = thymeleafViewResolver.getTemplateEngine().process("goods_detail", ctx);
         if(!StringUtils.isEmpty(html)) {
-            redisTemplate.opsForValue().set(GoodsKey.getGoodsDetail.getPrefix(goodsId), html);
+            redisUtil.set(GoodsKey.getGoodsDetail, goodsId, html);
         }
         return html;
     }

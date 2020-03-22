@@ -28,9 +28,10 @@ public class GoodsService extends ServiceImpl<GoodsDao, Goods> {
         return baseMapper.getGoodsVoByGoodsId(goodsId);
     }
 
-    public void reduceStock(GoodsVo goods) {
+    public boolean reduceStock(GoodsVo goods) {
         SeckillGoods seckillGoods = new SeckillGoods();
         seckillGoods.setGoodsId(goods.getId());
-        baseMapper.reduceStock(seckillGoods);
+        int result = baseMapper.reduceStock(seckillGoods);
+        return result > 0;
     }
 }

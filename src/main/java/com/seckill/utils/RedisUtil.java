@@ -68,4 +68,12 @@ public class RedisUtil {
         return redisTemplate.hasKey(key);
     }
 
+    public Boolean delete(BasePrefix prefix, Object key) {
+        return redisTemplate.delete(prefix.getKey(key));
+    }
+
+    public Boolean delete(String key) {
+        return redisTemplate.delete(key);
+    }
+
 }

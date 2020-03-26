@@ -4,6 +4,8 @@ public enum CodeMsg {
     SUCCESS(0, "success"),
     SERVER_ERROR(500100, "服务端异常"),
     BIND_ERROR(500101, "参数校验异常: %s"),
+    REQUEST_ILLEGAL(500102, "请求非法"),
+    ACCESS_LIMIT_REACHED(500104, "访问太频繁！"),
 
 
     //登录模块 5002XX
@@ -20,7 +22,8 @@ public enum CodeMsg {
 
     //秒杀模块 5005XX
     SECKILL_OVER(500500, "商品已经秒杀结束"),
-    REPEATE_SECKILL(500501, "不能重复秒杀");
+    REPEATE_SECKILL(500501, "不能重复秒杀"),
+    SECKILL_FAIL(500502, "秒杀失败");
 
     private int code;
     private String msg;
@@ -29,9 +32,11 @@ public enum CodeMsg {
         this.code = code;
         this.msg = msg;
     }
+
     public int getCode() {
         return code;
     }
+
     public String getMsg() {
         return msg;
     }

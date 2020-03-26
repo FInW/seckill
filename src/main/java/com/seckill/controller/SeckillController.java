@@ -16,11 +16,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 
@@ -58,13 +59,28 @@ public class SeckillController implements InitializingBean {
     }
 
 
-    @RequestMapping(value = "/do_seckill", method = RequestMethod.POST)
+    /**
+     * 带path参数进行请求，通过验证path的真实性，减少盗刷几率
+     *
+     * @param model
+     * @param user
+     * @param goodsId
+     * @param path
+     * @return
+     */
+    @RequestMapping(value = "/{path}/do_seckill", method = RequestMethod.POST)
     @ResponseBody
     public Result<Integer> seckill(Model model, User user,
-                                   @RequestParam("goodsId") long goodsId) {
+                                   @RequestParam("goodsId") long goodsId,
+                                   @PathVariable String path) {
         model.addAttribute("user", user);
         if (user == null) {
             return Result.error(CodeMsg.SERVER_ERROR);
+        }
+        //验证path
+        boolean check = seckillService.checkPath(user, goodsId, path);
+        if (!check) {
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
         }
         //减少redis访问
         boolean over = localOverMap.get(goodsId);
@@ -106,5 +122,41 @@ public class SeckillController implements InitializingBean {
         }
         long result = seckillService.getSecKillResult(user.getId(), goodsId);
         return Result.success(result);
+    }
+
+    //    @AccessLimit(seconds=5, maxCount=5, needLogin=true)
+    @RequestMapping(value = "/path", method = RequestMethod.GET)
+    @ResponseBody
+    public Result<String> getMiaoshaPath(User user, @RequestParam("goodsId") long goodsId,
+                                         @RequestParam(value = "verifyCode", defaultValue = "0") int verifyCode) {
+        if (user == null) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        boolean check = seckillService.checkVerifyCode(user, goodsId, verifyCode);
+        if (!check) {
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
+        }
+        String path = seckillService.createSeckillPath(user, goodsId);
+        return Result.success(path);
+    }
+
+    @RequestMapping(value = "/verifyCode", method = RequestMethod.GET)
+    @ResponseBody
+    public Result<String> getMiaoshaVerifyCod(HttpServletResponse response, User user,
+                                              @RequestParam("goodsId") long goodsId) {
+        if (user == null) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        try {
+            BufferedImage image = seckillService.createVerifyCode(user, goodsId);
+            OutputStream out = response.getOutputStream();
+            ImageIO.write(image, "JPEG", out);
+            out.flush();
+            out.close();
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error(CodeMsg.SECKILL_FAIL);
+        }
     }
 }
